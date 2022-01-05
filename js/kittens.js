@@ -1,6 +1,6 @@
 // This section contains some game constants
-var GAME_WIDTH = 375;
-var GAME_HEIGHT = 500;
+var GAME_WIDTH = 1000;
+var GAME_HEIGHT = 660;
 
 var ENEMY_WIDTH = 75;
 var ENEMY_HEIGHT = 156;
@@ -25,8 +25,15 @@ var images = {};
   images[imgName] = img;
 });
 
-class Enemy {
+class Entity {
+  render(ctx) {
+    ctx.drawImage(this.sprite, this.x, this.y);
+  }
+}
+
+class Enemy extends Entity {
   constructor(xPos) {
+    super();
     this.x = xPos;
     this.y = -ENEMY_HEIGHT;
     this.sprite = images['enemy.png'];
@@ -39,13 +46,14 @@ class Enemy {
     this.y = this.y + timeDiff * this.speed;
   }
 
-  render(ctx) {
-    ctx.drawImage(this.sprite, this.x, this.y);
-  }
+  // render(ctx) {
+  //   ctx.drawImage(this.sprite, this.x, this.y);
+  // }
 }
 
-class Player {
+class Player extends Entity {
   constructor() {
+    super();
     this.x = 2 * PLAYER_WIDTH;
     this.y = GAME_HEIGHT - PLAYER_HEIGHT - 10;
     this.sprite = images['player.png'];
@@ -60,9 +68,9 @@ class Player {
     }
   }
 
-  render(ctx) {
-    ctx.drawImage(this.sprite, this.x, this.y);
-  }
+  // render(ctx) {
+  //   ctx.drawImage(this.sprite, this.x, this.y);
+  // }
 }
 
 /*
@@ -110,7 +118,7 @@ class Engine {
 
     var enemySpot = 0;
     // Keep looping until we find a free enemy spot at random
-    while (!enemySpot && this.enemies[enemySpot]) {
+    while (this.enemies[enemySpot]) {
       enemySpot = Math.floor(Math.random() * enemySpots);
     }
 
@@ -132,6 +140,11 @@ class Engine {
     });
 
     this.gameLoop();
+  }
+
+  restart() {
+    this.score = 0;
+    requestAnimationFrame(this.gameLoop());
   }
 
   /*
@@ -173,7 +186,16 @@ class Engine {
       // If they are dead, then it's game over!
       this.ctx.font = 'bold 30px Impact';
       this.ctx.fillStyle = '#ffffff';
-      this.ctx.fillText(this.score + ' GAME OVER', 5, 30);
+      this.ctx.fillText(
+        this.score + ' GAME OVER, PRESS ENTER TO RESTART',
+        5,
+        30
+      );
+      document.addEventListener('keydown', (e) => {
+        if (e.keyCode === 13) {
+          this.restart();
+        }
+      });
     } else {
       // If player is not dead, then draw the score
       this.ctx.font = 'bold 30px Impact';
@@ -190,10 +212,12 @@ class Engine {
     var flag = false;
     this.enemies.forEach((enemy) => {
       console.log(this.player.y);
-      if (enemy.x == this.player.x) {
-        if (enemy.y == this.player.y) {
-          flag = true;
-        }
+      if (
+        enemy.x >= this.player.x &&
+        enemy.x < this.player.x + PLAYER_WIDTH &&
+        enemy.y + ENEMY_HEIGHT >= this.player.y
+      ) {
+        flag = true;
       }
     });
 
